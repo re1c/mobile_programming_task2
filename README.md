@@ -1,79 +1,161 @@
-# Tugas 2: Eksplorasi Dasar Tata Letak dan Arsitektur Hierarki Widget di Flutter
+# Tugas 2: Membedah Anatomi Kode dan Rekayasa Tata Letak Flutter
 
-Repositori ini memuat implementasi antarmuka pengguna (UI) Flutter yang dirancang khusus untuk memenuhi kriteria **Tugas 2**. Fokus utama pengerjaan ini adalah pada pemahaman praktis dan teoretis mengenai penyusunan tata letak (*layout*) secara hierarkis menggunakan kombinasi dari berbagai *widget* struktural dan visual fundamental yang membentuk landasan filosofi desain deklaratif kerangka kerja Flutter.
+Repositori ini memuat implementasi antarmuka pengguna (UI) Flutter yang dirancang khusus untuk memenuhi kriteria **Tugas 2**. Alih-alih hanya berfokus pada hasil visual akhir yang melekat di layar gawai, dokumentasi ini disusun untuk memandu Anda menyelami pembedahan struktur kode (*code-teardown*) secara presisi, dari lapis ke lapis. 
 
-Setiap baris kode disusun dengan merujuk pada praktik terbaik perancangan perangkat lunak *mobile* terkini (per kuartal pertama 2026), di mana stabilitas lintas perangkat, modularitas, keandalan kode (*null-safety*), dan efisiensi pelukisan memori (*rendering pipeline*) menjadi prioritas desain.
-
-Di bawah ini dimuat analisis teknis mendalam mengenai arsitektur tata desain, peranan setiap instrumen pembangun antarmuka, alasan logis pemilihan struktur *widget*, serta bagaimana komponen-komponen ini berinteraksi.
+Tujuannya adalah mengkaji bagaimana paradigma deklaratif antarmuka rancangan Flutter dikonstruksi secara masif melalui ekosistem bahasa pemrograman Dart—membedahnya secara koheren persis bermula dari titik mula sirkuit komputasi hingga turunan komponen visual terkecilnya. Seluruh tinjauan dilandaskan pada kaidah arsitektur rekayasa perangkat lunak termutakhir, menjunjung asas stabilitas, mitigasi memori komputasi, dan praktik terbaik (*best-practices*) seputar tata letak yang relevan hingga periode pemrograman per kuartal pertama 2026.
 
 ---
 
-## Bedah Arsitektur Widget dan Analisis Logika Kode
+## Analisis Komprehensif Arsitektur `main.dart`
 
-Membangun antarmuka menggunakan kerangka kerja (framework) Flutter pada hakikatnya adalah proses merangkai pohon komponen (*widget tree*). Antarmuka sekompleks apa pun pada akhirnya dibentuk dari gabungan balok-balok pembangun (*primitives*) fungsional sederhana. Berikut adalah anatomi logika penulisan layar utama di dalam berkas `main.dart`.
+Berikut adalah rincian fungsionalitas dan logika perakitan dari setiap baris penyusun berkas `main.dart`. Susunan kode dalam layar ditelaah utuh, dicicil dalam segmen berurutan dan terikat, agar alur komputasinya mengalir secara logis mencerna setiap fungsional eksekutor di belakang tabir.
 
-### 1. Inisiasi Lingkungan Basis Sistem: `MaterialApp`
-Pada bahasa Dart secara mendasar, peluncuran setiap program dipungkas oleh fungsi utama `main()`. Fungsi tersebut memanggil argumen `runApp` untuk mengawinkan rentetan konfigurasi pohon *widget* ke kerangka pelukis (*rendering engine*) perangkat yang menaunginya. Pada siklus akar inilah disematkan peran peranti sistem konfigurator visual terpenting, yakni komposit `MaterialApp`.
+### 1. Pintu Gerbang Inisialisasi Aplikasi
 
-Berbeda dengan komponen yang mencitrakan fisik antarmuka secara harfiah, `MaterialApp` dirancang untuk memantau siklus hidup aplikasi. Pada blok struktur parameter `ThemeData`, kode mendelegasikan perintah turunan `colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)` untuk menjamin integritas harmoni warna otomatis secara deterministik berbasis satu sumber nilai *seed* yang memunculkan turunan palet yang selaras tanpa memprogram satu per satu warna sistem. Mengaktifkan saklar standar `useMaterial3: true` di dalamnya bertindak krusial guna menjamin setiap interaksi di dalamnya otomatis terjamin beradaptasi ke kaidah purwarupa tipografi, pembiasan sisi (*border radius*), dan gaya desain *Google Material Design* iterasi terbaru untuk memastikan visibilitas UI yang mapan. Bagian rute awal antarmuka secara langsung ditunjuk melewati gerbang properti `home` ke perikatan komponen `RowColumnPage`.
+```dart
+import 'package:flutter/material.dart';
 
-### 2. Persiapan Kanvas Geometri Tampilan Dasar: `Scaffold`
-Begitu kita memasuki lapisan *layer* peracikan visual di dalam konfigurasi struktur antarmuka kelas `RowColumnPage` (berplatform `StatelessWidget`), modul pertama yang disematkan langsung untuk menduduki kanvas perangkat kosong tak berbatas adalah elemen *layout wrapper* struktural bernama `Scaffold`.
+void main() {
+  runApp(const MyApp());
+}
+```
 
-Bila diibaratkan pondasi sebuah rumah yang mengatur petak setiap ruangan di hunian, `Scaffold` adalah kerangka yang mengatur manajemen alokasi sistem pembagian layar mutlak gawai pintar ke dalam sejumlah ruang-ruang *slot* semantik logis. Dalam wujud realisasinya untuk perangkat lunak ini, pembagian difokuskan menduduki *slot* komponen atas bilah fungsional yang terisolasi aman mendelegasikan fungsional `appBar` serta menjamin wadah badan tampilan yang utuh lewat pembungkus pusat komputasi pada parameter penampung tunggal di entitas sentral properti bernama `body`.
+Dalam setiap peracikan rekayasa peranti lunak berbasis Dart, semuanya bertumpu murni mencari entitas pusat peluncuran yang selalu dipungkas oleh fungsi utama `main()`. Sebelum gerbang ini dibuka lebar, sebuah fondasi pusaka fundamental perlu diinjeksi lewat instruksi awal argumen pemanggilan pemuatan wujud `import`. Mengimpor pustaka sentralis abstraksi `material.dart` tak ubahnya mengambil cetak biru seluruh hukum *Google Material Design*. Kehadirannya mengebiri paksa penulisan ribuan baris perintah navigasi kiasan (*manual navigation primitive logic*), menghibahkan kemerdekaan pemakaian balok instrumen tipografi dan instrumen kanvas secara seketika (*Out of the box*).
 
-### 3. Dekorator Isolasi Batas Puncak Fungsional: `AppBar`
-Di singgasana tertinggi kerangka kerja *Scaffold*, slot antarmuka ditempati mutlak terikat ke komponen `AppBar`. Ia bukan sekedar bilah kaku melainkan panggung manajemen presentasi penanda status ruang dan fungsi. Pendekatan rancangannya lebih diarahkan secara kosmetik elegan melalui kombinasi:
-1. Mewujudkan instrumen representasi harfiah tulisan utama `Text('My first app')`.
-2. Melabuhkan secara mutlak judul pada koordinat tengah simetris bilah menggunakan gerbang pemaksaan logika `centerTitle: true`. Upaya sinkronisasi statik ini penting di tengah keberagaman platform dasar sistem operasi (karena Android konvensional cenderung meratakan judul aplikasi secara alamiah (*default*) merapat pilar pinggir tapak kiri).
-3. Merendahkan nuansa dominasinya dengan balutan latar pastel menggunakan `backgroundColor: Colors.orange[200]` digabung kompilator peredam penebal tulisan bawaan `fontWeight: FontWeight.normal`. Kedua instrumen properti estetika tersebut menjamin judul tidak memicu impresi warna yang saling berbenturan berebut fokus (*visual tension*) dengan area badan konten.
+Pada siklus inti tubuh eksekutornya, eksekutor `main()` melempar sinyal peluncuran mengikat peramban antarmuka kelas ke internal enjin pewarna layar Flutter memanggil parameter argumen rutinitas logis: fungsi `runApp()`. Kata sandang pembeda konstan, pemanggilan absolut *keyword* `const` dengan sadar mutlak diletakkan menyegel pemanggil *widget* konfigurasinya menyertai panggilan konstruktor perakit `MyApp()`. Langkah taktis rekayasa deklararif ini bukanlah kosmetik kiasan semata; melainkan sebuah janji kontrak terhadap kompiler Dart yang memverifikasikan status abstraksi komputasi secara prematur, bermakna bahwa wujud pilar di entitas rute layar ini sedari awal murni mutlak statis (*immutable*). Hasilnya adalah pelenyapan drastis instansiasi muatan ganda di bilah retensi memori grafis (*memory leak mitigation*), menghambat sindrom layu memori pada intervensi rendering di saat sistem mendadak mengeksekusi transisi laju tinggi penyusunan kerangka awal sistem layarnya kelak.
 
-### 4. Sumbu Tata Disiplin Arsitektur Vertikal: `Column`
-Saat fokus teralih merambah badan tampilan aplikasi (`body`), tuntutan utamanya adalah menyelenggarakan instrumen penata wujud arsitektur turunan untuk mengatur hirarki elemen demi elemen dari puncak pergerakan merayap mengular lurus turun secara linier ke kaki antarmuka gawai. Atas kebutuhan mutlak tersebut, kerangka utama mengadopsi kontrol komutasi elemen bertumpuk yang diwujudkan instansi bernama `Column`.
+### 2. Konfigurasi Kosmos Tampilan Lingkungan (`MyApp`)
 
-Fungsi spesifik dari *layout box* pengemban dimensi fungsional `Column` adalah menyusun setiap himpunan *children* isian yang dinaunginya secara berderet menyusur sumbu vertikal (*y-axis main flex alignment*). Pada rentetan argumentasinya di proyek ini, properti pengendali silang dieksekusi tegak lurus `crossAxisAlignment: CrossAxisAlignment.center` didaulat untuk mengikat secara taktis kesemua pangkalan modul interior yang berdiam diri di dalamnya—apakah blok gambar maupun papan informasi isiannya—selalu menduduki koordinat keseimbangan silang rata tepat menongkrongi sumbu absolut silang sentral tanpa kompromi bergeser menyamping tatkala dihidupkan di segala model rupa luas layar.
+```dart
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-### 5. Komodifikasi Relasi Geometri Dimensi Universal: `Container`
-Arsitektur peranti kerja Flutter mendewakan kaidah fundamental penataan berbasis *Composition over Inheritance* (komposisi hierarki prioritas atas pewarisan arsitektur mutlak). Asas filosofis teknikal murni ini tervisualisasi penuh merasuki jiwa pengembaian sebuah fungsional blok dasar universal berserbaguna utilitas silang yang umum diberi label kelas wujud kelas representasinya sebagai komponen abstrak `Container`. 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const RowColumnPage(),
+    );
+  }
+}
+```
 
-Ketiga gundukan fungsional layar (blok lukisan, label identifikasi pertanyaaan, blok identitas lambang reka pilih) seluruhnya dibentengi pelindung komposit `Container` yang mana mengasupkan manipulasi matematis untuk menyajikan estetika mandiri masing-masing fungsionalitas:
-*   **Ruang Antar-Elemen (Padding/Margin):** Pemberian zona bernapas (*breathing white space*) dipertegas melewati instruksi determinasi margin yang terencana presisi selang seling di setiap lapisannya semisal manifestasi `margin: const EdgeInsets.fromLTRB(20.0, ...)` membatasi intervensi antara gundukan satu gundukan memojok tepi ke gundukan di bawah dan tepian layar di sudut oposisi sisinya; diikuti ruang `padding` pengaman kedalaman sisi memelihara objek yang disemai interior elemen di perut sang wadah aman menjorok tak bersinggungan garis perbatasannya.
-*   **Sintesis Latar Kromatik:** Identitas warna pembeda direpresentasikan komitmen eksekusi properti `color` sebagai blok pondasi pewarnaan kanvas isolasi semisal meracik kepingan elemen `Colors.cyan[100]` menyokong citra dan identifikasi balok penopang *pink* muda hingga sentuhan keping aksen kenari yang lebih cerah tanpa memanggil kelas properti latar (*background object layer*) terpisah seperti pada ekosistem program web tradisional abad perintis.
+Membentik jasad lingkungan abstrak pusat, komponen perakit arsitektural yang dilabeli representasi kelas `MyApp` melebarkan hierarki mewariskan pilar sifat fundamental komponen kerangka mati tak responsif pasif—*StatelessWidget*. Penyerahan status tersebut disematkan karena penggerak sistem pengatur lalu lintas tak menderita kewajiban melakukan transformasi anatomi diri sejalan interaksi langsung dengan konsumen pemegang iterasi antarmuka interaksinya tatap muka layar (*side-effects mutation manipulation*). Pengalokasian memori spesifik argumen identitas `super.key` menjaminan pendelegasian integritas pelacak hirarki visual (*key preservation validation*) sewaktu menyuntik pelapisan di kerangka eksekusi pohon internal yang njelimet (*element state UI rendering engine computation tree process*).  
 
-### 6. Analisis Responsi Silang Media Secara Deterministik: `MediaQuery`
-Ketergantungan statis kaku menentukan ketetapan lebar besaran elemen secara numerik mutlak (semisal argumetntasi instruksi murni penanaman dimensi `width: 380`) bagi aplikasi cerdas modern adalah musuh alami kaidah ketidakpastian perangkat fisik konsumen—pantangan fatal memancing risiko tampilan pecah potong layaknya penyakit desain UI purba era layar usang tak beradaptasi. 
-Maka jalan tengah absolut mitigasi fragmentasi sistem dimensi antarmuka disajikan lewat manipulasi pendelegasian otoritas pembacaan responsi spasial instansi pada perwakilan antarmuka logis dengan mencatut pelenyapan statis *width Container* dan dipasrahkan kepada serapan nilai baca rekayasa fungsi perwakilan properti dinamis: `MediaQuery.of(context).size.width`. 
+Intramen fungsi rute siklus pilar komputasi pengadaan tata layarnya dilahirkan menetas direfleksikan sempurna mewujud melalui instruksi sakral `build()`. Di nadinya bersemayam jantung rekayasa kosmos visual gawai: instrumen `MaterialApp`. Fungsinya meminimalisir fisik wujud antarmuka representatif murni melampauinya berekspansi di tatanan abstrak sutradara pemetaan kosmetik global layar dan peranti alur lalulintas ruang pergeseran antarmuka mutlak. Argumen deklarator identitas variabel tunggal konstan parameter penugasan murni label kognisi *title* tak menjamah presentasi internal program, semata sebagai isyarat memori waktu pelacakan laci program gawai ponsel yang menduduki pelacak status *Foreground/Background Memory Application Switcher Process System OS*.
 
-Dengan menginjeksikan interogasi antarmuka pengintaian instan *MediaQuery* ini ke pembuluh ukuran argumen luasan *width* di ketiga deretan kotak berlapis yang kita ciptakan, maka kita merobohkan paradigma dimensi dogmatik mutlak; setiap *Container* dipaksa berdamai mengekspansi badan geometri spasial luarnya selalu mengekor dimensi ekuator total mendatar menyerap persis sebesar tepian luasan total dari resolusi gawai sang pengguna tanpa celah kendati jenis resolusi dirombak mutlak kelak meragam beralih gawai dari lebar minim menuju lanskap format yang lebih membentang kolosal.
+Terlebih lagi konfigurasi deklarasi arsitektur parameter turunan turunan skalar abstrak terpusat `ThemeData`. Di sinilah kerumitan manipulasi kode grafika kuno berevolusi. Lewat baris eksekusi komputator generator asimilatif deterministis palet spektrum komunal `ColorScheme.fromSeed(seedColor: Colors.deepPurple)`, sang pemrogram tak perluh lelah mengalokasikan parameter matriks kombinasi manual belasan corak hexademical rupa antarmukanya. Menanamkan bibit konvensi benih absolut nuansa rona muram gelap *pekat (deep purple)* mensubsidi secara mandiri sistem pengatur harmoni pewarnaan gubahan skalar varian gradien nuansa teredup kelabu, pencahayaan pudar kelam menopang harmoni hingga penyerapan cahaya dominan menyala kontras dengan sendirinya tanpa merobohkan logika kesatuan keindahan antarmuka (*adaptive algorithm chromatic interpolation*). Instruksi deklaratif pengikat kognisi asimilisai rupa pelantar masa depan `useMaterial3: true` turut melegitimasi bahwa konstruksi kriya tipografi dan lekukan geometri mutlak yang dibangun mewajibkan mengikat konvensi keselarasan harmoni pedoman *Material Design Version 3* Google terbarukan, mengekalkan adaptasi lekang zaman. Eksekusinya pungkasan membebaskan pendelegasian ruang beranda di properti layar mula lewat rujukan saklar properti antarmukanya `home` menetas utuh merenggut panggung mutlak mendelegasikan perintah kerjanya bersinergi secara berkesinambungan mengasup wadah ke pilar fondasional komponen layar utama `RowColumnPage`.
 
-### 7. Penjegalan Rasio Proporsional Definitif: `AspectRatio`
-Demi mengakomodir serapan komputasi citra eksternal yang serba tak tertebak pada rentang orientasi kameranya dalam kondisi operasi aplikasi *production mode*, perlindungan batas absolut ruang potret ini dilindungi pagar geometri statis berargumen spesifik: parameter matematis rasionya diskema dalam perintah `AspectRatio` melalui ketetapan nisbah `aspectRatio: 1.0`.
+### 3. Meretas Fasad Layar: Fondasi Dasar Geometris `Scaffold` dan Restorasi Fungsional `AppBar`
 
-Kerangka spesifik ini ibarat instruksi absolut perampokan rasio luasan dari entitas orang tua di luarnya memaksanya mencocokkan tingginya sesuai eksekusi parameter pembacaan nilai lebarnya yang dinamis tadi di poin ke-enam secara satu banding sama rasa, merakit suatu kanvas bujur sangkar definitif sempurna tanpa menoleransi celah sedikit pun mendistrosi bentuk. Pemasangan pemesanan rasio mutlak geometri dalam bagan tata desain kompilasi grafis memori prarander antarmuka ini memastikan enjin penampil grafikal program (*rendering layout graph parser machine*) tidak menghidupkan sindrom bahaya komputasi patah-patah lompat cacat merender ulang bingkai layar tatkala sistem gawai mendadak ditumbuk asupan berkecepatan dinamis unduhan *payload bytes* bingkai gambar luar rasional asimetris dari lajur sistem respons server antrean unduhan jauh.
+```dart
+class RowColumnPage extends StatelessWidget {
+  const RowColumnPage({super.key});
 
-### 8. Tata Sentuh Pengunci Episentrum Presisi Absolut: `Center`
-Lapisan benteng tata kelola penguncian pusaran koordinat pada wilayah titik keseimbangan lapis hierarkis antarmuka yang sangat mikro kembali dilimpahkan kendalinya di garda pilar tata *helper layout structurization* bernama modulasi *Center*.
-Tatkala wadah di panggung *Column* utama kita telah aman tertambat simetris merapat garis tengah horisontal berkat pemusatan poros *cross alignment*, pemanggilan pemanggungan entitas gambar eksternal di dalam petak *cyan* mensyaratkan kewajiban tambahan menyegel koordinat geometri grafis *image*. Isolasi mutlak peletakan argumen pusat mendarat menancapkan perpaduan letak perempatan eksak diagonal mendatar dan melintang menjamin piktorial tidak lari terseret condong berat membentak mendesak salah satu garis dalam kubu asimetris.
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'My first app',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
+        ),
+        backgroundColor: Colors.orange[200],
+        centerTitle: true,
+      ),
+// Lanjutan rute eksekusi antarmuka lapisan struktur bawah selanjutnya...
+```
 
-### 9. Asimilasi Grafis Lintas Kanal Tanpa Pembebanan Bundel Kompilasi: `Image.network`
-Implementasi dan serapan arsitektur visual tak menginterpelasikan injeksi biner muatan lukisan statik murni dari direktori internal memori piranti rilis gawai kelak, namun ditarik integrasinya melampaui kanal asimilasi sistem *Image.network*. Manifestasinya merupakan langkah mutakhir manajemen integrasi antarmuka asinkron: aplikasi me-*render* url peladen penyuplai acak internet. Eksekusi teknikal ini mengikis volume komputasi penambahan berlebihan *size footprint payload application artifact* (ukuran akhir aplikasi ter-*install* di gawainya pengguna kelak) sedekat sekecil mungkin pada perancangan level dasar (*prototype stage*).
+Konstruksi material arsitektur visual antarmuka riil penguasa bingkai gawai didaulatkan ditengah kemudi pilar konstan tak berstatus parameter komponen layar *RowColumnPage*. Siklus nafas kelahirannya dipoles mempesonakan representasi utuh mewarisi perakitan penangakapan pengunci layar universal sang pelayan parameter penyekat tata dimensi utama gawai—kelas antarmuka *widget Scaffold*.  Sang wadah pembeton kanvas murni `Scaffold` mengambil kendali pembagian lahan petak fraksi visual di bingkai sempit pendar gawai ponsel murni untuk menginisasi kapling laci pemecahan ruang dimensi ke sejumlah slot fungsional yang pakem.
 
-Argumen parameter pendamping krusial ditambahkan pula ke properti argumen *fit*. Melangsungkan pengukuhan fungsional argumen berdimensi paksa proporsi skala rupa `fit: BoxFit.cover` merupakan mitigasi taktis penyelesaian tumpah tindih; argumen parameter pembiasan dimensi eksekusi lukis *image* yang mendikte peranti untuk memaksa sebar luasan proporsi luasan potret asli agar diulur harmonis mengambang mulus mencekik penuh tapak ruang paksa kotak geometri bujusangkar `AspectRatio` induk wadahnya dengan mengorbankan luasan berlebih tepi secara kompromi elegan tanpa sekalipun menoleransi peremukkan distorsi pelebaran atau asimetris tarikan pada obyek visual pusat, menjaga piktorial *Material UI* selalu estetis. 
+Di tahta kapling tertinggi atap semesta `Scaffold` merujukkan rute propertinya absolut pada komponen antarmuka murni wujud abstraksi perbatasan fungsional antarmuka bilah puncak melintang representasi tajuk judul: kerangka pilar pelukisan navigasi `AppBar`. Tidak berhenti sebagai penahan statik sebidang petak warna, bilah tajuk diolah di sini secara kosmetik fungsional; mendelegasikan abstraksi konfirmasi verbal rupa murni tekstual lewat kerangka primitif konstruktor *Text* tunggal sebagai isian parameter sentral pendadaran argumen statis berisikan konfirmasi absolut string tulisan berbunyi label penanda identifikasi "My first app". Namun ia tak ditelantarkan kasar, paramater modifikasi ekor kustomisasinya memanggil gabungan properti pilar pewarisan deklaratif abstrak dari penentuan parameter panduan *TextStyle* melumuri rona abjad berpadu asimilasi `Colors.black` menyerap warna hitam mendalam natural disusul mengebiri penebalan ketegasan tulisan yang tak menuntut otoritas ketegangan serapan pandang indra mata menumbuk pelat pelabelan ketebalan huruf rileks konseptual wujud `fontWeight.normal`. 
+Redaman estetika gradien dilabuhkan komputasinya menengahi membalut tajuk antarmuka memungut keping konstan parameter matriks corak spektrum penugasan gradasi lembut parameter statik nilai argumentatif abstrak jingga redup `Colors.orange[200]`. Akhirnya stabilitas interaksional letak antarmuka di kunci pada eksekusi pengesahan paramater logis parameter `centerTitle: true`. Merupakan paksaan kognisi *override function parameter validation alignment* memutilir eksekusi otonomi pemuasan deterministik di piranti gawai varian *Android OS legacy base engine renderer* jadul yang berikeras menyeret paksa menenggelamkan teks antarmuka berat sebelah asimetris rapat menghujam merapat membentur batas sumbu tepi pilar orientasi margin layarnya.
 
-### 10. Aksara Statik Non-Primitif Fungsional Puitis Pembeda: `Text`
-Dalam tatanan filosofis paradigma program reaktor deklarasi komposit UI Flutter per rilisannya menentang dogma melempar nilai string secara terbuka primitif serampangan. Eksekusi pengungkapan retorika string konfirmatorik dipanggungkan dengan pelapis wujud *constructor* statis argumen obyek antarmuka utamanya dinamakan entitas terjemah *Text*. 
-Coretan konfirmasi verbal semacam interogasi “What image is that?” diturunkan menjadi gabungan komposisi literatur dan parameter kelas panduan gaya kosmetik pasangannya, properti stilir `TextStyle`. Pelibatan manipulasi properti ini membangkitkan utilitas yang luwes menetapkan bobot hingga besaran hierarkis piktorial (*fontSize: 16*),  mempertahankan spesifikasi dominasi tulisan minor membaur estetis yang cukup fungsional mudah dicerna pemahaman pandangan (*legibility*) manusia dalam kacamata konseptual integrasi tanpa merongrong porsi tatapan grafis utamanya menaungi bingkai antarmuka ini.
+### 4. Menenun Arsitektur Ruang Pemusatan Sentris Silang Linear Menurun (`Column`)
 
-### 11. Redefinisi Aksis Simetris Sejajar Penyeimbang Horizontal: `Row`
-Sebagai pengimbang logika kutub lawannya dari tata kelola arsitektural kompartemen saudaranya penguasanya yaitu instansi *Column*, wadah kenari penutup terbawah menarik pemusatan mendirikan pondasi bentangan memanjang mengusung *constructor framework layout* yang diberi kelas antarmuka tatanan `Row`. 
+```dart
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+// Inklusi pemetaan deret blok internal layar antarmuka memori rendering selanjutnya...
+```
 
-Peranti ini didapuk logis mengatur menjejerkan rentetan pilihan kategori label ikonografi linear mengawal aksis X (*horizontal axis*); menjembatani posisi merayap horizontal mutlak menyeberang rentang ujung kiri luasan properti ke tepian batas orientasi dimensi kanan di blok dasarnya. Namun supaya orkestrasi letak interaksi kelompok kategori menu ini kelak senantiasa tidak berkerumun, menumpuk menabrak di sebelah ekstrim orientasinya saja, pemanggilan paramater argumentasi vital keseimbangan asimetris fungsional dimasukkan yakni `mainAxisAlignment: MainAxisAlignment.spaceEvenly`. Imbasnya tak terbantahkan, rekayasa determinis silang algoritma eksekusi tatanan mesin antaramuka akan mencukur luang udara geometri luang layar horizontal pada dimensi spasial komputasi luasan terselip ini agar dipangkas mengukur ruang secara otomati rasional ekuivalen jarak komputasinya di sisi memecah tumpukan, menyajikan tatanan menu tiga tiang yang amat seimbang berdiri secara harmonis fungsional terpusah sempurna pada jarak pembagian fraksional spasi hampa ekuivalen menopang kestabilan persepsi pandang simetri optik secara visual.
+Tatkala eksekusi beralih mengakuisisi teritori lahan tubuh eksekutorial yang lebih lowong dalam parametris representasional wadah utamanya, yakni memungut interpelasi pada delegator teritorial *body*, komputasi rekayasa tata layar mendesak diisi perencana logis arsitektur himpunannya. Dilema meracik penempatan kelompok komponen jamak menurun linear dipecahkan secara kokoh telak mengasup delegator kompromis konstruktor logik peracik susun bertingkat vertikal ke pelukan pengikat sumbu dinamis abstraksi antarmuka mutlak pilar konstruksi peranti *box flexible layouts mapping constructor vector structure* fungsional bernama: `Column`.
 
-### 12. Piktogram Konseptual Representasi Aksi Cepat Murni: `Icon`
-Terakhir di keping komposisi blok relasi pembagian tataran interiornya di komporisi dasar tata kelola rentetan elemen `Row` tak dibiarkan begitu saja difasilitasi instruksi eksekusi gambar mandiri kompleks yang mengebiri muatan frame pemuatan memori gawai, tapi melabuhkannya menaut representasinya pada wujud glif lambang visual perwakilan aksi kognisi *gliff typographic font material design* murni bernama primitif *helper constructor widget* interaksi komprehensif `Icon`.
+Esensi rasional paramater `Column` diinisiasi merantai pemaksaan tumpukan pengumpulan kerangka obyek sub unit berbaris mengular menyusu melilit lintasan turun jatuh paralel sepanjang kurva orientasi sumbu linear longitudinal utama parameter spasial antarmuka gawainya (*y-axis mapping alignment layout rule engine computation algorithm execution flow parameter flow pipeline graph vector flow process layout validation tree render constraint object model structure*).  Agar fondasi asimilatif susunan tidak tercecer bertebaran bertabrakan di sisi silang ekuator melintangnya (*cross transversal parameter computation execution pipeline layer matrix rule coordinate spatial render model logic*), dipancangkan intervensi gembok paksa argumen `crossAxisAlignment: CrossAxisAlignment.center`. Mengartikulasikan bahwa setumpuk himpunan struktur sub *children* anakan apapun wujud rupa dimensinya dipaksa absolut digerek bersandar mengumpulkan titik tumpu pusat badannya direndam menancapkan patok imbang simetris ekuivalen ditarik serentak lurus terpaku mendarat jatuh tanpa toleransi cacat orientasi lari berat menyamping asimetris menuju episentrum gravitasi keselarasan ekuatorial horizontal gawai, mencengkeram teguh kestabilan proporsi arsitektur spasial layarnya tanpa perlawan tawar dimensi *rendering flex* dari piranti terasing di era rilis gawai generasi masa depannya kelak.
 
-Pendayagunaan konstanta *enumeration* piktorial lambang standar bawaan (*native material asset constant design symbol parameters*) seperti rujukan kode panggilan parameter identitas representasi statik komunal  `Icons.restaurant`, referensi konseptualisasi elemen rekaan obyek perlindungan parameter puitis piktorial perwakilan statik arsitektur pelukisan alam murni `Icons.umbrella`, dan representasi abstraksi sosok insan relasi fungsional glif siluet kemanusiaan di rentetan pemanggilan argumen representasi entitas arsitektur parameter pasif  `Icons.person` ini memvitalisasikan proses mengartikulasi lambang isyarat intuisi nalar fungsional jauh sekilas penglihatan menyalip cepat ketimbang mencerna lambat tulisan label pelengkap di kolongnya semata murni dalam perambanan arsitektur *mobile device UI interface behavior design standardisation guidelines*. Merupakan persembahan penutup keefisiensian antarmuka terintegrasi yang mutlak solid, ringan alokasi beban *footprint memory* komputasi render, terbebas pecah piksel distorsi dimensi kala dieksploitasi skala rasio besaran karena hakikat sejatinya adalah instrumen komputasi *vector scaling font type glyph render engine*, menancapkan tonggak kestabilan rupa paripurna kokoh responsif terakselerasi dari sekejap antarmuka dirender menghadap indera mata fisik absolut sang pengguna akhir aplikasi tatkala menapaki interaksi langsung nyata pada genggaman.
+### 5. Determinasi Ekosistem Grafis dengan Ketundukan Batasan Spasial Konservatif  (`AspectRatio` dan Wadah Beradaptasi)
 
----
+```dart
+          AspectRatio(
+            aspectRatio: 1.0,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              margin: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
+              padding: const EdgeInsets.all(20.0),
+              color: Colors.cyan[100],
+              child: Center(
+                child: Image.network(
+                  'https://picsum.photos/200',
+                  fit: BoxFit.cover,
+                  width: 500,
+                ),
+              ),
+            ),
+          ),
+```
 
-Melalui dekonstruksi komprehensif pada perancangan skema kompilatif arsitektur tata kelola ekosistem pemrograman bahasa pemrograman deklarasi material wujud di antarmuka sistem di skema rekayasa struktur atas, dapat diproyeksikan dengan sangat masif tercapainya sebuah perwujudan ekosistem fondasi tata bangun sistem *frontend mobile engineering* peranti tatap layar kokoh yang tak sekadar luwes lentur bereaksi ke ranah penenggelaman dimensi *hardware* dan adaptasi silang responsibilitas di jagat raya dimensi perangkat keras multi ragam di alam industri masa peranti ini diluncurkan—namun terlebih lagi merintis standar tinggi keberlangsungan kode tak tergoyahkan untuk menjamin proses evolusi perbaikan di edisi fasa ekspansi iterasi fitur program di masa pengembangannya yang menantang kelak demi mewujudkan pengalaman navigasi gesit respons efisien nan sempurna murni memanjakan interaksi di ujung jari target aplikasinya.
+Hierarki teras blok teratas internal struktur badan linear antarmuka bertugas mendelegasikan ruang akulturasi menata instrumen pelukisan representasi piksel utama gambar. Mengizinkan grafis memanipulasi rander secara buas berdasarkan unduhan parameter rasio ukuran foto liar acak bebas murni dapat menyebabkan bencana guncangan layat mendadak (*UI screen stutter recalculation jank tearing lag constraint loop tree break parameter calculation layout parameter dimension computation bottleneck performance penalty frame rendering layout parsing execution delay frame load jump shift layout bug exception condition rule failure calculation process algorithm glitch*). Melawan sindrom tersebut, struktur dilindungi pelapis mitigasi isolasi spasial pelindung kanvas mutlak berpagar geometri statis bernama parameter *widget helper dimension parser constraint validation component tool* : `AspectRatio`. Argumen murni eksekusi pengundian konstan nilai paksaan matematis *Double* 1.0 pada parameter orientasinya mengekang mutlak ketersediaan ruang, mencungkil paksa perhitungan relasi persilangan matematis alur abstraksi memutilasinya membangun kubus parameter geometri ruang pelukisan sempurna (mendiktekan luasan rasio mutlak orientasi bujur sangkar sama keling) mementahkan manipulasi kalkulasi dari sub parameter abstraksi dimensi peranti antarmuka cabangnya.
+
+Dibawah perlindungannya bernaung pengemban elemen arsitektur utilitas penyelia pembungkus universal yang mahir berekspansi luwes berwujud arsitektur deklaratif antarmuka parametris *Container*. Supaya tubuh *Container* kebal pergeseran akibat limitasi luasan perangkat, kelemahan penetapan statis pukuran angka dikonversi dengan mengeksploitasi relasi kesadaran spasial rekayasa parametrik antarmuka pengindera perantara (*responsive runtime logical layer spatial execution interface matrix computation layer protocol interface hook execution class parameter*) yang dikenal luas sebagai pilar interogasi ruang komprehensif : `MediaQuery`. Instruksi mutlak intervensi pembebanan `MediaQuery.of(context).size.width` di cabang `width` mengklaim mutlak keseluruhan jatah ekstrim total sumbu luasan layar rentang horizon gawai piranti pengguan kelak secara waktu riil *dynamic state layout computation evaluation time rendering validation dimension protocol hook injection parser logic parameter extraction resolution dimension screen state*, memaksa `Container` ekspansi menyentuh tepi bingkai layar. Menjemput kewarasan batas visual estetik dari layar menabrak muka ruang pandang gawainya, ruang spasi intervensi memanggil `margin` (ruang rehat udara antara *padding* terlarang sisi batas kontinum dan tubuh kotak `Container`) yang diberikan alokasi pembedaan asimetri terstruktur `EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0)` sembari dibekali ruang penahanan dinding ketebalan dalam interal antarmukanya melingkupi obyek pusat setara simetris absolut ekuivalensi komutasi matematis *padding* mutlak sebesar angka luasan konstan `20.0`. Warna kosmetik kanvas melarut redup parameter estetika merangkul integrasi `Colors.cyan[100]`. Terperangkap pasrah ke penjangkar mutlak parameter letak arsitektur terisolir stabilitasnya menyemat `Center`, gambar pun dilukis asinkron menyuap biner parameter unduhan luar pirantinya `Image.network`. Properti resolusi pelipat ganda pengikat re-komputasi citra orientasi lukisnya di kekang dengan pendelegasian paramater pengkorbansan silang abstraksi berargumen spesifik `fit: BoxFit.cover`. Argumantati parameter memutus kompromi mereduksi sisi perpecahan sisa kelebihan luasan demi keutuhan membendung membanjiri asimilasi keutuhan mengembang merata meregang tanpa patah distorsi rasio, menyumpal mengurung murni petak semesta geometri orientasi rasio luang di petak *box shape render aspect layout matrix grid projection object* luasan asalnya tanpa sela secara paripurna.
+
+### 6. Isolasi Entitas Blok Identifikatif Repositori Literasi Pemandu
+
+```dart
+          Container(
+            width: MediaQuery.of(context).size.width,
+            margin: const EdgeInsets.fromLTRB(20.0, 5.0, 20.0, 10.0),
+            padding: const EdgeInsets.all(20.0),
+            color: Colors.pink[100],
+            child: const Text('What image is that?', style: TextStyle(fontSize: 16)),
+          ),
+```
+
+Estafet barisan orientasi linear beralih ke lapis tengah hirarki parameter arsitektural antarmukanya mengaktifkan utilitas komponen pembungkus komposit deklarasi yang mendirikan dimensi identifikasi fasilitor spasial paramater antarmuka kembali memanggil konstruktor pembungkus serbaguna komputasi deklarasinya `Container`. Konsistensi ekspansi pelarutan determinis rekayasa komputasi batas resolusi orientasi batas ujung terluar kembali di interogasi determinasi parameter relasi `width` melegitimasi absolut penyadapan resolusi layar penuh interaksi abstraksi kelas interogator dimensi luasan absolut parameter perisainya mengambil sandaran utuh parameter baca statik `MediaQuery.of(context).size.width`. 
+
+Pelarutan estetika dimensi parameter luasan perangkapan kanvas luasan lapisannya tak ditinggalkan gundul, dioles asimilasi pengabadian matriks perpaduan pewarnaan kanvas palet dasar nuansa pastel menenangkan dengan argumentasi pelepasan penguatan properti pewarnaan rona cerah redup memudar pink muram (*Colors.pink[100]*). Elemen perantara arsitektural di tatanan relasinya didesain semata membatasi melindungi representasi murni fungsional penugasan abstraksi verbal mengartikulasikan isyarat teks pemandu kognisi perantinya dengan deklarasi instansi parameter antarmuka perakit tulisan *string representation literal primitive UI constructor layout class model interface property*  : mendelegasi teks primitif pasif `Text` yang meneriakkan pertanyaan absolut tak bersyarat penegasan iteratif argumen berbunyi absolut statik "What image is that?". Menjembatani keterasingan asimetri keterikatan pembacaan relasinya antarmuka merentang pandangan gawai yang dinamis dimensinya, parameter kosmetik memanggil intervensi pendikte skala dimensi visualnya melampirkan pilar komputasi parametris deklaratifnya diserahkan kepada peneguhan asisten pemandu kosmetik parameter rupa *TextStyle*; memaksa mereduksi besaran piktorial tulisan agar patuh menjangkar terisolasi moderat mematok ukuran skalar tulisan pada parameter absolut hierarkinya dengan parameter komputasi *fontSize* luasan numerik murni abstrak mutlak bilangan 16. Ini memuaskan porsi piktorial aksara interogasi tanpa melebihi panggung otoritas elemen lain.
+
+### 7. Landasan Pemusatan Orientasi Silang Kategori Menu Mendatar (`Row` dan Ikonografi)
+
+```dart
+          Container(
+            width: MediaQuery.of(context).size.width,
+            color: Colors.yellow[200],
+            padding: const EdgeInsets.all(20.0),
+            margin: const EdgeInsets.fromLTRB(20.0, 5.0, 20.0, 5.0),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Column(children: [Icon(Icons.restaurant), Text("Food")]),
+                Column(children: [Icon(Icons.umbrella), Text("Scenery")]),
+                Column(children: [Icon(Icons.person), Text("People")]),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+Sebagai pilar penopang penutup resolusi barisan ujung dasar orientasi spasial linear dari paramater arsitektur utamanya dalam siklus tatanannya, fondasi dasar interaktif ini diabadikan melebarkan sayap melahirkan asimilasi blok parameter utilitas wadah terakhir yang dibalut pigmentasi kecerahan redup parameter kosmetik penyerap aura `Colors.yellow[200]`. Di lambung arsitekturnya yang terdalam bersemayam rahasia penataan antarmuka silang oposisi dimensi lintang; tak lagi berpegang komputasi rekayasa vertikal tatanan arsitekturnya namun melepaskan serapan melabuhkannya berekspansi lintang berkuasa bergelar parameter pilar kerangka perakit linear antarmuka orientasi tatanan sumbu mendatar abstraksional bernama entitas arsitektur parameter konstruksi penataan antarmuka abstraksi kelas wujud riil  `Row`.
+
+Esensi keandalan argumen rekayasa luasan bentangan pemosisian silang linear *Row* menjernihkan anomali persilangan kepadatan objek yang mengkristal (*render engine UI tree overlap crash clipping issue resolution*), diselamatkan oleh deklarasi pengikat mutlak intervensi *layout constraint positioning flow override constraint rule property validation algorithm parameter dimension configuration* : pendiktean argumen properti pungkasan kesepakatan dimensi fungsional linear parameter `mainAxisAlignment: MainAxisAlignment.spaceEvenly`. Intensi rasional instruksi deklarator mutlak parameter ini mengakibatkan kalkulator mesin render ruang layar mencacah alokasi spasi relung hampa di lajur X menjadi kepingan fraksional sela dimensi hampa asimetri antar wadah yang mengurung seimbang ekuivalen persis sama identik besaran komulasinya melerai tumpukan menari renggang berdiri stabil memutus tumpang tindih elemen parameter abstraksi kognisi menunya masing masing menempati kavling mandiri simetris di sepaenjang orientasi luasan gawainya.
+
+Berdiri kukuh beranak-pinak pada rongga baris orientasi silang *Row* tersebut dipancangkan parameter kebangkitan kembali tiang turunan struktur pilar-pilar isolasi asimilasi tegak independen paramater *Column* sebanyak tiga anomali unit yang memendam pelukisan asimilasi representasi visual mutlak piktogram abstrak vektor konseptual tanpa membebani interpelasi lukisan *bitmap size chunk parameter resource heavy footprint download asset package payload burden size penalty constraint limit mobile parameter optimization limit constraint overhead execution* — menggunakan kerangka komponen pelukis vektor gubahan *native rendering engine system widget library resource parameter mapping property tool class* : konstruktor abstraksi glif vektor tunggal kognisi rupa murni `Icon`. Berpegang mendegradasi panggilan kelas bawaan identitas spesifik statis komunal *Google Material enum glyph parameter index identifier library properties symbol icon references*: semisal perakitan abstrak fungsional alam memanggil glif spesifik `Icons.umbrella`, menaut abstraksi sarana siluet asimilasi entitas fungsional menu penopang perwajahan manusia `Icons.person`, dan asimilasi perwakilan glif pangan `Icons.restaurant`. Melabuhkannya ke parameter konfirmasi abstraksi rupa label komunal identitas primitif abjad fungsional `Text` mempertegas maknanya menjadi komposisi navigasi visual komplit yang berbobot teramat sangat ringan berkarakter tajam sempurna tanpa secuilpun kompromi reduksi blur rasio interpolasi skalasi di peranti antarmuka dengan kedalaman orientasi DPI beresolusi super raksasa retina tinggi di abad ini—menutup komposisi komputasi program rekayasa interfacenya secara stabil tangguh dan paripurna.
