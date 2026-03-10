@@ -164,6 +164,63 @@ class RowColumnPage extends StatelessWidget {
 * **Eksekusi Pengulangan Bersarang (*Nesting* `Column/Row`)**: Di tiap porsi perhentian kategori anak **`Row`**, ditanamkan kembali blok turunan **`Column`** sederhana untuk mewujudkan tata susun ikon abstrak yang selalu ditaruh persis secara vertikal berbaris menaungi sub-label keterangannya; menelurkan tata-kelola struktur navigasional UI modern pada umumnya.
 * **Optimalisasi Muatan Grafis Vektor (`Icon`)**: Mewujudkan wujud ikon navigasi lewat pendelegasian komponen grafis (*primitive shape render class*) bernama **`Icon`**. Menggunakan referensi bawaan pedoman statis piktogram (contohnya `Icons.restaurant`, `Icons.umbrella`, dan `Icons.person`) merupakan keputusan implementasi rekayasa antarmuka standar *(best-practice)*. Abstraksi visual native gubahan Google ini jauh lebih gampang diregistrasi, nol kelambatan muatan rasio berkas (*zero footprint download metric payload*), namun ketajaman resolusinya tak pernah pecah layaknya vektor terukur rapi meski dilihat melalui kedalaman dimensi piksel tinggi perangkat Retina kekinian.
 
+### 8. Penambahan Interaktivitas dengan *StatefulWidget* (`CounterCard`)
+
+```dart
+          const CounterCard(),
+        ],
+      ),
+    );
+  }
+}
+
+class CounterCard extends StatefulWidget {
+  const CounterCard({super.key});
+
+  @override
+  State<CounterCard> createState() => _CounterCardState();
+}
+
+class _CounterCardState extends State<CounterCard> {
+  int _counter = 0; // State variabel yang akan diperbarui
+
+  void _incrementCounter() {
+    setState(() {
+      _counter++; // Mengubah status dan memicu render ulang (rebuild)
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20.0, 5.0, 20.0, 5.0),
+      padding: const EdgeInsets.all(20.0),
+      width: MediaQuery.of(context).size.width,
+      color: Colors.cyan[100],
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("Counter here: $_counter", style: const TextStyle(fontSize: 16)),
+          Container(
+            color: Colors.cyan[200],
+            padding: const EdgeInsets.all(5.0),
+            child: IconButton(
+              onPressed: _incrementCounter,
+              icon: const Icon(Icons.add, color: Colors.black, size: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+* Di bagian paling bawah beranda, kita memasukkan komponen **`CounterCard`**, yang mendemonstrasikan bagaimana aplikasi Flutter menangani perubahan data secara dinamis (reaktif) melalui pewarisan **`StatefulWidget`**.
+* Berbeda dengan `StatelessWidget` yang tampilannya kaku statis, `StatefulWidget` dipasangkan dengan kelas **`State`** (`_CounterCardState`). Kelas ini bertugas sebagai penyimpan memori lokal/status komponen (yakni variabel integer **`_counter`**).
+* **`setState()`**: Ini adalah fungsi intervensi paling penting dalam siklus hidup antarmuka dinamis Flutter. Ketika pengguna menekan tombol penambah (diatur melalui *callback* `onPressed: _incrementCounter`), fungsi `setState()` dipanggil. Fungsi ini bukan sekadar mengubah angka `_counter` di latar belakang, namun sekaligus memberi tahu *rendering engine* Flutter bahwa status penyusun data telah berubah (*dirty state*), sehingga kerangka *widget* `CounterCard` wajib digambar ulang (*rebuild*) ke layar secepat mungkin untuk menampilkan perhitungan angka terbaru.
+* Di dalam *UI/build* dari `CounterCard`, struktur kotaknya mengulangi penerapan konsep dasar sebelumnya: menggunakan `Container` sebagai latar, `padding`/`margin` sebagai ruang spasi, dan `Row` dengan parameter `mainAxisAlignment: MainAxisAlignment.spaceBetween` agar label teks angka (kiri) dan tombol (kanan) saling mendorong terpisah merapat ke tepian wadahnya masing-masing.
+
 ---
 
 Kesimpulannya, penempatan `Row` di dalam `Column` yang disusun dan dibalut di dalam `Container` pada proyek ini menunjukkan pola umum pembuatan antarmuka (UI) dasar di Flutter. Pola ini sengaja disusun untuk memisahkan setiap komponen agar kodenya lebih bersih, mudah dibaca, dan mudah untuk dimodifikasi kembali (*maintainable*). Implementasi awal ini diharapkan dapat berfungsi dengan baik sebagai fondasi yang cukup kokoh bagi pengembangan halaman atau fitur aplikasi yang lebih kompleks ke depannya.
